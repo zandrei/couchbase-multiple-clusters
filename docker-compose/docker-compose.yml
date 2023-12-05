@@ -1,0 +1,106 @@
+version: "3.9"
+services:
+
+    db:
+        image: "couchbase:community-6.6.0"
+        ports:
+            - 8091-8095:8091-8095
+            - 9102:9102
+            - 11210:11210
+        volumes:
+            - ./couchbase:/couchbase-data
+        expose:
+          - "8091"
+          - "8092"
+          - "8093"
+          - "8094"
+          - "8095"
+          - "9102"
+          - "11210"
+        entrypoint:
+          - bash
+          - -c
+          - |
+              set -e
+
+              /entrypoint.sh couchbase-server &
+              (
+                if $$(dpkg -l | grep -q "curl"); then \
+                    echo 'Curl is installed'; else \
+                    echo 'Installing cURL'; \
+                    apt-get update && apt-get -y -f install curl; \
+                fi
+              ) &&
+              (
+                  ok=1; \
+                  while [ $$ok != 0 ]; do \
+                      sleep 5; \
+                      echo 'Couchbase is starting (rest api not available)'; \
+                      curl --connect-timeout 1 -s  http://127.0.0.1:8091 > /dev/null; \
+                      ok=$$?; \
+                  done
+              ) && (
+                if $$(couchbase-cli bucket-list -c localhost:8091 --username admin --password admin1 | grep -q "sample" ); then \
+                  echo 'Cluster already set up. Skipping configuration'; else \
+                  echo 'Configuring Couchbase and creating cluster'; \
+                  couchbase-cli cluster-init --cluster localhost --services data,index,query --cluster-username admin --cluster-password admin1 --cluster-port 8091 --cluster-ramsize 300 --cluster-name sample; \
+                  couchbase-cli bucket-create --cluster localhost --username admin --password admin1 --bucket sample --bucket-type couchbase --bucket-ramsize 100; \
+                  cbimport json --cluster localhost --username admin --password admin1 -b sample --generate-key %id% -f lines -d file://couchbase-data/sample.json; \
+                fi
+              ) &&
+              echo 'Initialization done' &&
+              tail -f /opt/couchbase/var/lib/couchbase/logs/error.log
+        container_name: couchbase
+
+    db-alt:
+        image: "couchbase:community-6.6.0"
+        ports:
+            - 28091-28095:28091-28095
+            - 9000:9000
+            - 19102:9102
+            - 21210:21210
+        volumes:
+            - ./couchbase:/couchbase-data
+            - ./couchbase-config/static_config:/opt/couchbase/etc/couchbase/static_config:rw
+        expose:
+            - "9000"
+            - "28091"
+            - "28092"
+            - "28093"
+            - "28094"
+            - "28095"
+            - "19102"
+            - "21210"
+        entrypoint:
+            - bash
+            - -c
+            - |
+                set -e
+
+                /entrypoint.sh couchbase-server &
+                (
+                  if $$(dpkg -l | grep -q "curl"); then \
+                      echo 'Curl is installed'; else \
+                      echo 'Installing cURL'; \
+                      apt-get update && apt-get -y -f install curl; \
+                  fi
+                ) &&
+                (
+                    ok=1; \
+                    while [ $$ok != 0 ]; do \
+                        sleep 5; \
+                        echo 'Couchbase is starting (rest api not available)'; \
+                        curl --connect-timeout 1 -s  http://127.0.0.1:28091 > /dev/null; \
+                        ok=$$?; \
+                    done
+                ) && (
+                  if $$(couchbase-cli bucket-list -c localhost:28091 --username admin --password admin1 | grep -q "sample" ); then \
+                    echo 'Cluster already set up. Skipping configuration'; else \
+                    echo 'Configuring Couchbase and creating cluster'; \
+                    couchbase-cli cluster-init --cluster localhost:28091 --services data,index,query --cluster-username admin --cluster-password admin1 --cluster-port 28091 --cluster-ramsize 300 --cluster-name sample-alt; \
+                    couchbase-cli bucket-create --cluster localhost:28091 --username admin --password admin1 --bucket sample --bucket-type couchbase --bucket-ramsize 100; \
+                  fi
+                ) &&
+                echo 'Initialization done' &&
+                tail -f /opt/couchbase/var/lib/couchbase/logs/error.log
+        container_name: couchbase-alt

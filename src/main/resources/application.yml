@@ -1,0 +1,22 @@
+spring:
+  couchbase:
+    connection: localhost
+    port: 8091
+    bucket:
+      name: janus
+      username: admin
+      password: admin1
+
+  couchbase-alt:
+    connection: localhost
+    port: 28091
+    bucket:
+      name: janus
+      username: admin
+      password: admin1
+
+
+sample:
+  data-migration:
+    mappings:
+      destination: source
