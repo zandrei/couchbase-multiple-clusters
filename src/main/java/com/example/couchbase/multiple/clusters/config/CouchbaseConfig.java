@@ -1,15 +1,12 @@
 package com.example.couchbase.multiple.clusters.config;
 
 import com.couchbase.client.java.env.ClusterEnvironment;
-import com.example.couchbase.multiple.clusters.entity.SampleEntity;
-import com.example.couchbase.multiple.clusters.framework.EnableSampleReactiveCouchbaseRepositories;
-import com.example.couchbase.multiple.clusters.framework.SampleReactiveRepository;
-import com.example.couchbase.multiple.clusters.framework.SampleReactiveRepositoryOperationsMapping;
+import com.example.couchbase.multiple.clusters.entity.SampleEntityDestination;
+import com.example.couchbase.multiple.clusters.entity.SampleEntitySource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.couchbase.CouchbaseClientFactory;
 import org.springframework.data.couchbase.SimpleCouchbaseClientFactory;
@@ -18,13 +15,11 @@ import org.springframework.data.couchbase.core.ReactiveCouchbaseTemplate;
 import org.springframework.data.couchbase.core.convert.CouchbaseCustomConversions;
 import org.springframework.data.couchbase.core.convert.MappingCouchbaseConverter;
 import org.springframework.data.couchbase.core.convert.translation.JacksonTranslationService;
+import org.springframework.data.couchbase.repository.config.ReactiveRepositoryOperationsMapping;
 
 import java.util.List;
 
 @Configuration
-@EnableSampleReactiveCouchbaseRepositories(
-        basePackages = "com.example.couchbase.multiple.clusters.repository",
-        repositoryBaseClass = SampleReactiveRepository.class)
 @Slf4j
 public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
 
@@ -90,20 +85,8 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
         return new CouchbaseCustomConversions(List.of());
     }
 
-    @Bean(name = "sampleReactiveCouchbaseOperationsMapping")
-    public SampleReactiveRepositoryOperationsMapping
-            sampleReactiveCouchbaseRepositoryOperationsMapping(
-                    ReactiveCouchbaseTemplate reactiveCouchbaseTemplate) {
-        // create a base mapping that associates all repositories to the default template
-        SampleReactiveRepositoryOperationsMapping baseMapping =
-                new SampleReactiveRepositoryOperationsMapping(reactiveCouchbaseTemplate);
-        // let the user tune it
-        configureReactiveRepositoryOperationsMapping(baseMapping);
-        return baseMapping;
-    }
-
-    void configureReactiveRepositoryOperationsMapping(
-            SampleReactiveRepositoryOperationsMapping mapping) {
+    protected void configureReactiveRepositoryOperationsMapping(
+            ReactiveRepositoryOperationsMapping mapping) {
         try {
             var customConversions = customConversions();
             var converter =
@@ -122,11 +105,11 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
                     sampleCouchbaseClientFactory("sample", properties.getConnectionString());
 
             mapping.mapEntity(
-                    SampleEntity.class,
-                    // primary cluster (destination)
-                    sampleReactiveCouchbaseTemplate(altBucket, converter),
-                    // fallback cluster (source)
-                    sampleReactiveCouchbaseTemplate(bucket, converter));
+                    SampleEntitySource.class, sampleReactiveCouchbaseTemplate(bucket, converter));
+
+            mapping.mapEntity(
+                    SampleEntityDestination.class,
+                    sampleReactiveCouchbaseTemplate(altBucket, converter));
 
         } catch (Exception e) {
             log.error("Could not configure repository operations mapping: {}", e.getMessage(), e);
