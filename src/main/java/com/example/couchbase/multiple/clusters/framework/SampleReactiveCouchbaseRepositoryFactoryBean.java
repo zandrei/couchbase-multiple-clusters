@@ -17,6 +17,7 @@ package com.example.couchbase.multiple.clusters.framework;
 
 import com.example.couchbase.multiple.clusters.config.DataMigrationProperties;
 import org.springframework.data.couchbase.core.ReactiveCouchbaseOperations;
+import org.springframework.data.couchbase.repository.config.ReactiveRepositoryOperationsMapping;
 import org.springframework.data.couchbase.repository.support.CouchbaseRepositoryFactoryBean;
 import org.springframework.data.couchbase.repository.support.ReactiveCouchbaseRepositoryFactoryBean;
 import org.springframework.data.repository.Repository;
@@ -61,6 +62,13 @@ public class SampleReactiveCouchbaseRepositoryFactoryBean<
             final ReactiveCouchbaseOperations reactiveCouchbaseOperations) {
         setSampleReactiveCouchbaseOperationsMapping(
                 new SampleReactiveRepositoryOperationsMapping(reactiveCouchbaseOperations));
+    }
+
+    public void setReactiveCouchbaseOperationsMapping(
+            final SampleReactiveRepositoryOperationsMapping couchbaseOperationsMapping) {
+        super.setReactiveCouchbaseOperationsMapping(couchbaseOperationsMapping);
+        this.sampleReactiveCouchbaseOperationsMapping = couchbaseOperationsMapping;
+        setMappingContext(couchbaseOperationsMapping.getMappingContext());
     }
 
     public SampleReactiveRepositoryOperationsMapping getSampleReactiveCouchbaseOperationsMapping() {

@@ -2,7 +2,7 @@ package com.example.couchbase.multiple.clusters.config;
 
 import com.couchbase.client.java.env.ClusterEnvironment;
 import com.example.couchbase.multiple.clusters.entity.SampleEntity;
-import com.example.couchbase.multiple.clusters.framework.EnableSampleReactiveCouchbaseRepositories;
+import com.example.couchbase.multiple.clusters.framework.SampleReactiveCouchbaseRepositoryFactoryBean;
 import com.example.couchbase.multiple.clusters.framework.SampleReactiveRepository;
 import com.example.couchbase.multiple.clusters.framework.SampleReactiveRepositoryOperationsMapping;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,16 +14,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.couchbase.CouchbaseClientFactory;
 import org.springframework.data.couchbase.SimpleCouchbaseClientFactory;
 import org.springframework.data.couchbase.config.AbstractCouchbaseConfiguration;
+import org.springframework.data.couchbase.config.BeanNames;
 import org.springframework.data.couchbase.core.ReactiveCouchbaseTemplate;
 import org.springframework.data.couchbase.core.convert.CouchbaseCustomConversions;
 import org.springframework.data.couchbase.core.convert.MappingCouchbaseConverter;
 import org.springframework.data.couchbase.core.convert.translation.JacksonTranslationService;
+import org.springframework.data.couchbase.repository.config.EnableReactiveCouchbaseRepositories;
 
 import java.util.List;
 
 @Configuration
-@EnableSampleReactiveCouchbaseRepositories(
+@EnableReactiveCouchbaseRepositories(
         basePackages = "com.example.couchbase.multiple.clusters.repository",
+        repositoryFactoryBeanClass = SampleReactiveCouchbaseRepositoryFactoryBean.class,
         repositoryBaseClass = SampleReactiveRepository.class)
 @Slf4j
 public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
@@ -90,7 +93,7 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
         return new CouchbaseCustomConversions(List.of());
     }
 
-    @Bean(name = "sampleReactiveCouchbaseOperationsMapping")
+    @Bean(name = BeanNames.REACTIVE_COUCHBASE_OPERATIONS_MAPPING)
     public SampleReactiveRepositoryOperationsMapping
             sampleReactiveCouchbaseRepositoryOperationsMapping(
                     ReactiveCouchbaseTemplate reactiveCouchbaseTemplate) {
