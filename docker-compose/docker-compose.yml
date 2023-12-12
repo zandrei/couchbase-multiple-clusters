@@ -94,11 +94,11 @@ services:
                         ok=$$?; \
                     done
                 ) && (
-                  if $$(couchbase-cli bucket-list -c localhost:28091 --username admin --password admin1 | grep -q "sample" ); then \
+                  if $$(couchbase-cli bucket-list -c localhost:28091 --username admin --password admin1 | grep -q "sample-alt" ); then \
                     echo 'Cluster already set up. Skipping configuration'; else \
                     echo 'Configuring Couchbase and creating cluster'; \
                     couchbase-cli cluster-init --cluster localhost:28091 --services data,index,query --cluster-username admin --cluster-password admin1 --cluster-port 28091 --cluster-ramsize 300 --cluster-name sample-alt; \
-                    couchbase-cli bucket-create --cluster localhost:28091 --username admin --password admin1 --bucket sample --bucket-type couchbase --bucket-ramsize 100; \
+                    couchbase-cli bucket-create --cluster localhost:28091 --username admin --password admin1 --bucket sample-alt --bucket-type couchbase --bucket-ramsize 100; \
                   fi
                 ) &&
                 echo 'Initialization done' &&

@@ -47,17 +47,17 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
 
     @Override
     public String getUserName() {
-        return properties.getBucket().username();
+        return altProperties.getBucket().username();
     }
 
     @Override
     public String getPassword() {
-        return properties.getBucket().password();
+        return altProperties.getBucket().password();
     }
 
     @Override
     public String getBucketName() {
-        return properties.getBucket().name();
+        return altProperties.getBucket().name();
     }
 
     public ReactiveCouchbaseTemplate sampleReactiveCouchbaseTemplate(
@@ -116,7 +116,7 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
             converter.afterPropertiesSet();
 
             final var altBucket =
-                    sampleCouchbaseClientFactory("sample", altProperties.getConnectionString());
+                    sampleCouchbaseClientFactory("sample-alt", altProperties.getConnectionString());
 
             final var bucket =
                     sampleCouchbaseClientFactory("sample", properties.getConnectionString());

@@ -8,6 +8,6 @@ import org.springframework.context.annotation.Configuration;
 public class CouchbaseAltProperties extends CouchbaseConnectionInformation {
 
     public String getConnectionString() {
-        return port == null ? connection : String.format("%s:%s=manager", connection, port);
+        return port == null ? connection : String.format("couchbase://localhost:21210,%s:%s=manager", connection, port);
     }
 }
